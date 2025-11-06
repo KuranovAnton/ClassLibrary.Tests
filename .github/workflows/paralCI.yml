@@ -1,0 +1,54 @@
+name: paralCI
+
+on: [push, pull_request]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v3
+              with:
+                dotnet-version: '8.0.x'
+        
+            - name: Build Debug and Release
+              run:
+                dotnet build --configuration Release
+        
+    test:
+        runs-on: ubuntu-latest
+        needs: build
+    
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+      
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v3
+              with:
+                dotnet-version: '8.0.x'
+        
+            - name: Test
+              run: dotnet test --configuration Release
+
+    code-analysis:
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+        
+            - name: Setup .NET
+              uses: actions/setup-dotnet@v3
+              with:
+                dotnet-version: '8.0.x'
+        
+            - name: Code Analysis
+              run: |
+                dotnet format --verify-no-changes --verbosity detailed
+                echo "Анализ кода завершен"
