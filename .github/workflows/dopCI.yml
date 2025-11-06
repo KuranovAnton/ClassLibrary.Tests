@@ -1,0 +1,39 @@
+name: dopCI
+
+on: [pull_request]
+
+jobs:
+  build-and-test:
+    name: Build and Test (${{ matrix.configuration }})
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Build
+      run: dotnet build --configuration ${{ matrix.configuration }} --verbosity normal
+
+    - name: Test
+      run: dotnet test --configuration ${{ matrix.configuration }} --no-build --verbosity normal
+
+    - name: Publish application
+      run: |
+        mkdir -p publish/${{ matrix.configuration }}
+        dotnet publish --configuration ${{ matrix.configuration }} --output publish/${{ matrix.configuration }} --verbosity normal
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts-${{ matrix.configuration }}
+        path: publish/${{ matrix.configuration }}/
+        retention-days: 30
